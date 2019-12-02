@@ -2,8 +2,13 @@
 #include "i2c.h"
 #include "i2c_BMP280.h"
 #include <MPU9255.h>
+#include <Servo.h>
 const double SLP = 101600;
 const double dp = 0;
+
+Servo myservo;
+int pos=180;
+bool posB=false;
 
 BMP280 bmp280;
 MPU9255 mpu;
@@ -36,6 +41,9 @@ void setup()
       Serial.println("Initialization succesful!");
     }
 
+    myservo.attach(9);
+    myservo.write(pos);
+
     // onetime-measure:
     bmp280.setEnabled(0);
     bmp280.triggerMeasurement();
@@ -62,12 +70,17 @@ void loop()
 
     float Altura = (pow(SLP/(pascal-dp), lapse)-1)*(15+CK)/alfa - Altura0;
 
-    activacion=Serial.read()>0;
-    if(activacion==true && abertura==false){
+    if(Altura >= 20 && abertura==false && calibracion==true){
       abertura=true;
+      for(pos=180; pos>=0; pos--){
+        myservo.write(pos);
+        delay(1);
+      }
     }
     
     bmp280.triggerMeasurement();
+
+    
 
     Serial.print("Height: ");
     Serial.print(Altura);
@@ -99,5 +112,5 @@ void loop()
     Serial.print(" Abierto ");
     Serial.print(abertura);
     Serial.println();
-    delay(100);
+    delay(10);
 }
